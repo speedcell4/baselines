@@ -120,15 +120,15 @@ def build_env(args):
         env = bench.Monitor(env, logger.get_dir())
         env = retro_wrappers.wrap_deepmind_retro(env)
 
-    else: 
-       get_session(tf.ConfigProto(allow_soft_placement=True,
+    else:
+        get_session(tf.ConfigProto(allow_soft_placement=True,
                                    intra_op_parallelism_threads=1,
                                    inter_op_parallelism_threads=1))
 
-       env = make_vec_env(env_id, env_type, args.num_env or 1, seed, reward_scale=args.reward_scale)
+        env = make_vec_env(env_id, env_type, args.num_env or 1, seed, reward_scale=args.reward_scale)
 
-       if env_type == 'mujoco':
-           env = VecNormalize(env) 
+        if env_type == 'mujoco':
+            env = VecNormalize(env)
 
     return env
 

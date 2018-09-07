@@ -1,6 +1,7 @@
 import numpy as np
 from baselines.common.runners import AbstractEnvRunner
 
+
 class Runner(AbstractEnvRunner):
 
     def __init__(self, env, model, nsteps, nstack):
@@ -11,13 +12,13 @@ class Runner(AbstractEnvRunner):
         self.nact = env.action_space.n
         nenv = self.nenv
         self.nbatch = nenv * nsteps
-        self.batch_ob_shape = (nenv*(nsteps+1), nh, nw, nc*nstack)
+        self.batch_ob_shape = (nenv * (nsteps + 1), nh, nw, nc * nstack)
         self.obs = np.zeros((nenv, nh, nw, nc * nstack), dtype=np.uint8)
         obs = env.reset()
         self.update_obs(obs)
 
     def update_obs(self, obs, dones=None):
-        #self.obs = obs
+        # self.obs = obs
         if dones is not None:
             self.obs *= (1 - dones.astype(np.uint8))[:, None, None, None]
         self.obs = np.roll(self.obs, shift=-self.nc, axis=3)
@@ -50,11 +51,10 @@ class Runner(AbstractEnvRunner):
 
         mb_dones = np.asarray(mb_dones, dtype=np.bool).swapaxes(1, 0)
 
-        mb_masks = mb_dones # Used for statefull models like LSTM's to mask state when done
-        mb_dones = mb_dones[:, 1:] # Used for calculating returns. The dones array is now aligned with rewards
+        mb_masks = mb_dones  # Used for statefull models like LSTM's to mask state when done
+        mb_dones = mb_dones[:, 1:]  # Used for calculating returns. The dones array is now aligned with rewards
 
         # shapes are now [nenv, nsteps, []]
         # When pulling from buffer, arrays will now be reshaped in place, preventing a deep copy.
 
         return enc_obs, mb_obs, mb_actions, mb_rewards, mb_mus, mb_dones, mb_masks
-

@@ -9,7 +9,6 @@ class IdentityEnv(Env):
             self,
             episode_len=None
     ):
-
         self.episode_len = episode_len
         self.time = 0
         self.reset()
@@ -46,7 +45,6 @@ class DiscreteIdentityEnv(IdentityEnv):
             dim,
             episode_len=None,
     ):
-
         self.action_space = Discrete(dim)
         super().__init__(episode_len=episode_len)
 
@@ -60,7 +58,6 @@ class BoxIdentityEnv(IdentityEnv):
             shape,
             episode_len=None,
     ):
-
         self.action_space = Box(low=-1.0, high=1.0, shape=shape)
         super().__init__(episode_len=episode_len)
 

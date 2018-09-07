@@ -7,11 +7,14 @@ import tensorflow.contrib.layers as layers
 
 mapping = {}
 
+
 def register(name):
     def _thunk(func):
         mapping[name] = func
         return func
+
     return _thunk
+
 
 def nature_cnn(unscaled_images, **conv_kwargs):
     """
@@ -46,6 +49,7 @@ def mlp(num_layers=2, num_hidden=64, activation=tf.tanh):
 
     function that builds fully connected network with a given input tensor / placeholder
     """
+
     def network_fn(X):
         h = tf.layers.flatten(X)
         for i in range(num_layers):
@@ -59,6 +63,7 @@ def mlp(num_layers=2, num_hidden=64, activation=tf.tanh):
 def cnn(**conv_kwargs):
     def network_fn(X):
         return nature_cnn(X, **conv_kwargs), None
+
     return network_fn
 
 
@@ -73,6 +78,7 @@ def cnn_small(**conv_kwargs):
         h = conv_to_fc(h)
         h = activ(fc(h, 'fc1', nh=128, init_scale=np.sqrt(2)))
         return h, None
+
     return network_fn
 
 
@@ -112,8 +118,8 @@ def lstm(nlstm=128, layer_norm=False):
 
         h = tf.layers.flatten(X)
 
-        M = tf.placeholder(tf.float32, [nbatch]) #mask (done t-1)
-        S = tf.placeholder(tf.float32, [nenv, 2*nlstm]) #states
+        M = tf.placeholder(tf.float32, [nbatch])  # mask (done t-1)
+        S = tf.placeholder(tf.float32, [nenv, 2 * nlstm])  # states
 
         xs = batch_to_seq(h, nenv, nsteps)
         ms = batch_to_seq(M, nenv, nsteps)
@@ -126,7 +132,7 @@ def lstm(nlstm=128, layer_norm=False):
         h = seq_to_batch(h5)
         initial_state = np.zeros(S.shape.as_list(), dtype=float)
 
-        return h, {'S':S, 'M':M, 'state':snew, 'initial_state':initial_state}
+        return h, {'S': S, 'M': M, 'state': snew, 'initial_state': initial_state}
 
     return network_fn
 
@@ -139,8 +145,8 @@ def cnn_lstm(nlstm=128, layer_norm=False, **conv_kwargs):
 
         h = nature_cnn(X, **conv_kwargs)
 
-        M = tf.placeholder(tf.float32, [nbatch]) #mask (done t-1)
-        S = tf.placeholder(tf.float32, [nenv, 2*nlstm]) #states
+        M = tf.placeholder(tf.float32, [nbatch])  # mask (done t-1)
+        S = tf.placeholder(tf.float32, [nenv, 2 * nlstm])  # states
 
         xs = batch_to_seq(h, nenv, nsteps)
         ms = batch_to_seq(M, nenv, nsteps)
@@ -153,7 +159,7 @@ def cnn_lstm(nlstm=128, layer_norm=False, **conv_kwargs):
         h = seq_to_batch(h5)
         initial_state = np.zeros(S.shape.as_list(), dtype=float)
 
-        return h, {'S':S, 'M':M, 'state':snew, 'initial_state':initial_state}
+        return h, {'S': S, 'M': M, 'state': snew, 'initial_state': initial_state}
 
     return network_fn
 
@@ -191,7 +197,9 @@ def conv_only(convs=[(32, 8, 4), (64, 4, 2), (64, 3, 1)], **conv_kwargs):
                                            **conv_kwargs)
 
         return out, None
+
     return network_fn
+
 
 def _normalize_clip_observation(x, clip_range=[-5.0, 5.0]):
     rms = RunningMeanStd(shape=x.shape[1:])

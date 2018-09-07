@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from baselines.common.tile_images import tile_images
 
+
 class AlreadySteppingError(Exception):
     """
     Raised when an asynchronous step is running while
@@ -33,7 +34,7 @@ class VecEnv(ABC):
         self.observation_space = observation_space
         self.action_space = action_space
         self.closed = False
-        self.viewer = None # For rendering
+        self.viewer = None  # For rendering
 
     @abstractmethod
     def reset(self):
@@ -159,6 +160,7 @@ class VecEnvWrapper(VecEnv):
 
     def get_images(self):
         return self.venv.get_images()
+
 
 class CloudpickleWrapper(object):
     """

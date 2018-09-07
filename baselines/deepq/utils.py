@@ -3,6 +3,7 @@ from baselines.common.tf_util import adjust_shape
 
 import tensorflow as tf
 
+
 # ================================================================
 # Placeholders
 # ================================================================
@@ -80,5 +81,3 @@ class ObservationInput(PlaceholderTfInput):
 
     def get(self):
         return self.processed_inpt
-    
-    

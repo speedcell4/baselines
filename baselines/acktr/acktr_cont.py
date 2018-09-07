@@ -6,8 +6,10 @@ from baselines.common import tf_util as U
 from baselines.acktr import kfac
 from baselines.common.filters import ZFilter
 
+
 def pathlength(path):
-    return path["reward"].shape[0]# Loss function that we'll differentiate to get the policy gradient
+    return path["reward"].shape[0]  # Loss function that we'll differentiate to get the policy gradient
+
 
 def rollout(env, policy, max_pathlength, animate=False, obfilter=None):
     """
@@ -41,21 +43,21 @@ def rollout(env, policy, max_pathlength, animate=False, obfilter=None):
         if done:
             terminated = True
             break
-    return {"observation" : np.array(obs), "terminated" : terminated,
-            "reward" : np.array(rewards), "action" : np.array(acs),
-            "action_dist": np.array(ac_dists), "logp" : np.array(logps)}
+    return {"observation": np.array(obs), "terminated": terminated,
+            "reward": np.array(rewards), "action": np.array(acs),
+            "action_dist": np.array(ac_dists), "logp": np.array(logps)}
+
 
 def learn(env, policy, vf, gamma, lam, timesteps_per_batch, num_timesteps,
-    animate=False, callback=None, desired_kl=0.002):
-
+          animate=False, callback=None, desired_kl=0.002):
     obfilter = ZFilter(env.observation_space.shape)
 
     max_pathlength = env.spec.timestep_limit
     stepsize = tf.Variable(initial_value=np.float32(np.array(0.03)), name='stepsize')
     inputs, loss, loss_sampled = policy.update_info
-    optim = kfac.KfacOptimizer(learning_rate=stepsize, cold_lr=stepsize*(1-0.9), momentum=0.9, kfac_update=2,\
-                                epsilon=1e-2, stats_decay=0.99, async_=1, cold_iter=1,
-                                weight_decay_dict=policy.wd_dict, max_grad_norm=None)
+    optim = kfac.KfacOptimizer(learning_rate=stepsize, cold_lr=stepsize * (1 - 0.9), momentum=0.9, kfac_update=2, \
+                               epsilon=1e-2, stats_decay=0.99, async_=1, cold_iter=1,
+                               weight_decay_dict=policy.wd_dict, max_grad_norm=None)
     pi_var_list = []
     for var in tf.trainable_variables():
         if "pi" in var.name:
@@ -77,13 +79,14 @@ def learn(env, policy, vf, gamma, lam, timesteps_per_batch, num_timesteps,
     while True:
         if timesteps_so_far > num_timesteps:
             break
-        logger.log("********** Iteration %i ************"%i)
+        logger.log("********** Iteration %i ************" % i)
 
         # Collect paths until we have enough timesteps
         timesteps_this_batch = 0
         paths = []
         while True:
-            path = rollout(env, policy, max_pathlength, animate=(len(paths)==0 and (i % 10 == 0) and animate), obfilter=obfilter)
+            path = rollout(env, policy, max_pathlength, animate=(len(paths) == 0 and (i % 10 == 0) and animate),
+                           obfilter=obfilter)
             paths.append(path)
             n = pathlength(path)
             timesteps_this_batch += n
@@ -100,7 +103,7 @@ def learn(env, policy, vf, gamma, lam, timesteps_per_batch, num_timesteps,
             vtargs.append(return_t)
             vpred_t = vf.predict(path)
             vpred_t = np.append(vpred_t, 0.0 if path["terminated"] else vpred_t[-1])
-            delta_t = rew_t + gamma*vpred_t[1:] - vpred_t[:-1]
+            delta_t = rew_t + gamma * vpred_t[1:] - vpred_t[:-1]
             adv_t = common.discount(delta_t, gamma * lam)
             advs.append(adv_t)
         # Update value function
@@ -130,7 +133,7 @@ def learn(env, policy, vf, gamma, lam, timesteps_per_batch, num_timesteps,
             logger.log("kl just right!")
 
         logger.record_tabular("EpRewMean", np.mean([path["reward"].sum() for path in paths]))
-        logger.record_tabular("EpRewSEM", np.std([path["reward"].sum()/np.sqrt(len(paths)) for path in paths]))
+        logger.record_tabular("EpRewSEM", np.std([path["reward"].sum() / np.sqrt(len(paths)) for path in paths]))
         logger.record_tabular("EpLenMean", np.mean([pathlength(path) for path in paths]))
         logger.record_tabular("KL", kl)
         if callback:

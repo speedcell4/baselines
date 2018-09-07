@@ -1,7 +1,8 @@
- # flake8: noqa F403, F405
+# flake8: noqa F403, F405
 from .atari_wrappers import *
 import numpy as np
 import gym
+
 
 class TimeLimit(gym.Wrapper):
     def __init__(self, env, max_episode_steps=None):
@@ -20,6 +21,7 @@ class TimeLimit(gym.Wrapper):
     def reset(self, **kwargs):
         self._elapsed_steps = 0
         return self.env.reset(**kwargs)
+
 
 class StochasticFrameSkip(gym.Wrapper):
     def __init__(self, env, n, stickprob):
@@ -42,13 +44,13 @@ class StochasticFrameSkip(gym.Wrapper):
             if self.curac is None:
                 self.curac = ac
             # First substep, delay with probability=stickprob
-            elif i==0:
+            elif i == 0:
                 if self.rng.rand() > self.stickprob:
                     self.curac = ac
             # Second substep, new action definitely kicks in
-            elif i==1:
+            elif i == 1:
                 self.curac = ac
-            if self.supports_want_render and i<self.n-1:
+            if self.supports_want_render and i < self.n - 1:
                 ob, rew, done, info = self.env.step(self.curac, want_render=False)
             else:
                 ob, rew, done, info = self.env.step(self.curac)
@@ -59,6 +61,7 @@ class StochasticFrameSkip(gym.Wrapper):
     def seed(self, s):
         self.rng.seed(s)
 
+
 class PartialFrameStack(gym.Wrapper):
     def __init__(self, env, k, channel=1):
         """
@@ -68,8 +71,8 @@ class PartialFrameStack(gym.Wrapper):
         shp = env.observation_space.shape
         self.channel = channel
         self.observation_space = gym.spaces.Box(low=0, high=255,
-            shape=(shp[0], shp[1], shp[2] + k - 1),
-            dtype=env.observation_space.dtype)
+                                                shape=(shp[0], shp[1], shp[2] + k - 1),
+                                                dtype=env.observation_space.dtype)
         self.k = k
         self.frames = deque([], maxlen=k)
         shp = env.observation_space.shape
@@ -88,8 +91,9 @@ class PartialFrameStack(gym.Wrapper):
 
     def _get_ob(self):
         assert len(self.frames) == self.k
-        return np.concatenate([frame if i==self.k-1 else frame[:,:,self.channel:self.channel+1]
-            for (i, frame) in enumerate(self.frames)], axis=2)
+        return np.concatenate([frame if i == self.k - 1 else frame[:, :, self.channel:self.channel + 1]
+                               for (i, frame) in enumerate(self.frames)], axis=2)
+
 
 class Downsample(gym.ObservationWrapper):
     def __init__(self, env, ratio):
@@ -98,16 +102,17 @@ class Downsample(gym.ObservationWrapper):
         """
         gym.ObservationWrapper.__init__(self, env)
         (oldh, oldw, oldc) = env.observation_space.shape
-        newshape = (oldh//ratio, oldw//ratio, oldc)
+        newshape = (oldh // ratio, oldw // ratio, oldc)
         self.observation_space = spaces.Box(low=0, high=255,
-            shape=newshape, dtype=np.uint8)
+                                            shape=newshape, dtype=np.uint8)
 
     def observation(self, frame):
         height, width, _ = self.observation_space.shape
         frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
         if frame.ndim == 2:
-            frame = frame[:,:,None]
+            frame = frame[:, :, None]
         return frame
+
 
 class Rgb2gray(gym.ObservationWrapper):
     def __init__(self, env):
@@ -117,11 +122,11 @@ class Rgb2gray(gym.ObservationWrapper):
         gym.ObservationWrapper.__init__(self, env)
         (oldh, oldw, _oldc) = env.observation_space.shape
         self.observation_space = spaces.Box(low=0, high=255,
-            shape=(oldh, oldw, 1), dtype=np.uint8)
+                                            shape=(oldh, oldw, 1), dtype=np.uint8)
 
     def observation(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        return frame[:,:,None]
+        return frame[:, :, None]
 
 
 class MovieRecord(gym.Wrapper):
@@ -130,6 +135,7 @@ class MovieRecord(gym.Wrapper):
         self.savedir = savedir
         self.k = k
         self.epcount = 0
+
     def reset(self):
         if self.epcount % self.k == 0:
             print('saving movie this episode', self.savedir)
@@ -140,6 +146,7 @@ class MovieRecord(gym.Wrapper):
             self.env.unwrapped.movie = None
         self.epcount += 1
         return self.env.reset()
+
 
 class AppendTimeout(gym.Wrapper):
     def __init__(self, env):
@@ -157,7 +164,7 @@ class AppendTimeout(gym.Wrapper):
             self.observation_space = gym.spaces.Dict({
                 'original': self.original_os,
                 'value_estimation_timeout': self.timeout_space
-                })
+            })
             self.dict_mode = False
         self.ac_count = None
         while 1:
@@ -181,12 +188,14 @@ class AppendTimeout(gym.Wrapper):
         if self.dict_mode:
             ob['value_estimation_timeout'] = fracmissing
         else:
-            return { 'original': ob, 'value_estimation_timeout': fracmissing }
+            return {'original': ob, 'value_estimation_timeout': fracmissing}
+
 
 class StartDoingRandomActionsWrapper(gym.Wrapper):
     """
     Warning: can eat info dicts, not good if you depend on them
     """
+
     def __init__(self, env, max_random_steps, on_startup=True, every_episode=False):
         gym.Wrapper.__init__(self, env)
         self.on_startup = on_startup
@@ -199,7 +208,7 @@ class StartDoingRandomActionsWrapper(gym.Wrapper):
     def some_random_steps(self):
         self.last_obs = self.env.reset()
         n = np.random.randint(self.random_steps)
-        #print("running for random %i frames" % n)
+        # print("running for random %i frames" % n)
         for _ in range(n):
             self.last_obs, _, done, _ = self.env.step(self.env.action_space.sample())
             if done: self.last_obs = self.env.reset()
@@ -215,6 +224,7 @@ class StartDoingRandomActionsWrapper(gym.Wrapper):
                 self.some_random_steps()
         return self.last_obs, rew, done, info
 
+
 def make_retro(*, game, state, max_episode_steps, **kwargs):
     import retro
     env = retro.make(game, state, **kwargs)
@@ -222,6 +232,7 @@ def make_retro(*, game, state, max_episode_steps, **kwargs):
     if max_episode_steps is not None:
         env = TimeLimit(env, max_episode_steps=max_episode_steps)
     return env
+
 
 def wrap_deepmind_retro(env, scale=True, frame_stack=4):
     """
@@ -234,11 +245,13 @@ def wrap_deepmind_retro(env, scale=True, frame_stack=4):
         env = ScaledFloatFrame(env)
     return env
 
+
 class SonicDiscretizer(gym.ActionWrapper):
     """
     Wrap a gym-retro environment and make it use discrete
     actions for the Sonic game.
     """
+
     def __init__(self, env):
         super(SonicDiscretizer, self).__init__(env)
         buttons = ["B", "A", "MODE", "START", "UP", "DOWN", "LEFT", "RIGHT", "C", "Y", "X", "Z"]
@@ -252,8 +265,9 @@ class SonicDiscretizer(gym.ActionWrapper):
             self._actions.append(arr)
         self.action_space = gym.spaces.Discrete(len(self._actions))
 
-    def action(self, a): # pylint: disable=W0221
+    def action(self, a):  # pylint: disable=W0221
         return self._actions[a].copy()
+
 
 class RewardScaler(gym.RewardWrapper):
     """
@@ -261,12 +275,14 @@ class RewardScaler(gym.RewardWrapper):
     This is incredibly important and effects performance
     drastically.
     """
+
     def __init__(self, env, scale=0.01):
         super(RewardScaler, self).__init__(env)
         self.scale = scale
 
     def reward(self, reward):
         return reward * self.scale
+
 
 class AllowBacktracking(gym.Wrapper):
     """
@@ -275,17 +291,18 @@ class AllowBacktracking(gym.Wrapper):
     from exploring backwards if there is no way to advance
     head-on in the level.
     """
+
     def __init__(self, env):
         super(AllowBacktracking, self).__init__(env)
         self._cur_x = 0
         self._max_x = 0
 
-    def reset(self, **kwargs): # pylint: disable=E0202
+    def reset(self, **kwargs):  # pylint: disable=E0202
         self._cur_x = 0
         self._max_x = 0
         return self.env.reset(**kwargs)
 
-    def step(self, action): # pylint: disable=E0202
+    def step(self, action):  # pylint: disable=E0202
         obs, rew, done, info = self.env.step(action)
         self._cur_x += rew
         rew = max(0, self._cur_x - self._max_x)

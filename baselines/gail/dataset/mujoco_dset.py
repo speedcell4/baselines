@@ -54,7 +54,7 @@ class Mujoco_Dset(object):
         self.acs = np.reshape(acs, [-1, np.prod(acs.shape[2:])])
 
         self.rets = traj_data['ep_rets'][:traj_limitation]
-        self.avg_ret = sum(self.rets)/len(self.rets)
+        self.avg_ret = sum(self.rets) / len(self.rets)
         self.std_ret = np.std(np.array(self.rets))
         if len(self.acs) > 2:
             self.acs = np.squeeze(self.acs)
@@ -64,11 +64,11 @@ class Mujoco_Dset(object):
         self.randomize = randomize
         self.dset = Dset(self.obs, self.acs, self.randomize)
         # for behavior cloning
-        self.train_set = Dset(self.obs[:int(self.num_transition*train_fraction), :],
-                              self.acs[:int(self.num_transition*train_fraction), :],
+        self.train_set = Dset(self.obs[:int(self.num_transition * train_fraction), :],
+                              self.acs[:int(self.num_transition * train_fraction), :],
                               self.randomize)
-        self.val_set = Dset(self.obs[int(self.num_transition*train_fraction):, :],
-                            self.acs[int(self.num_transition*train_fraction):, :],
+        self.val_set = Dset(self.obs[int(self.num_transition * train_fraction):, :],
+                            self.acs[int(self.num_transition * train_fraction):, :],
                             self.randomize)
         self.log_info()
 
@@ -100,8 +100,10 @@ def test(expert_path, traj_limitation, plot):
     if plot:
         dset.plot()
 
+
 if __name__ == '__main__':
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--expert_path", type=str, default="../data/deterministic.trpo.Hopper.0.00.npz")
     parser.add_argument("--traj_limitation", type=int, default=None)

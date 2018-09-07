@@ -17,7 +17,8 @@ def main():
     args = parser.parse_args()
     logger.configure()
     set_global_seeds(args.seed)
-    env = retro_wrappers.make_retro(game=args.env, state=args.gamestate, max_episode_steps=10000, use_restricted_actions=retro.Actions.DISCRETE)
+    env = retro_wrappers.make_retro(game=args.env, state=args.gamestate, max_episode_steps=10000,
+                                    use_restricted_actions=retro.Actions.DISCRETE)
     env.seed(args.seed)
     env = bench.Monitor(env, logger.get_dir())
     env = retro_wrappers.wrap_deepmind_retro(env)

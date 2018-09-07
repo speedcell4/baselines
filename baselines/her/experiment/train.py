@@ -66,7 +66,8 @@ def train(policy, rollout_worker, evaluator,
         success_rate = mpi_average(evaluator.current_success_rate())
         if rank == 0 and success_rate >= best_success_rate and save_policies:
             best_success_rate = success_rate
-            logger.info('New best success rate: {}. Saving policy to {} ...'.format(best_success_rate, best_policy_path))
+            logger.info(
+                'New best success rate: {}. Saving policy to {} ...'.format(best_success_rate, best_policy_path))
             evaluator.save_policy(best_policy_path)
             evaluator.save_policy(latest_policy_path)
         if rank == 0 and policy_save_interval > 0 and epoch % policy_save_interval == 0 and save_policies:
@@ -83,8 +84,8 @@ def train(policy, rollout_worker, evaluator,
 
 
 def launch(
-    env, logdir, n_epochs, num_cpu, seed, replay_strategy, policy_save_interval, clip_return,
-    override_params={}, save_policies=True
+        env, logdir, n_epochs, num_cpu, seed, replay_strategy, policy_save_interval, clip_return,
+        override_params={}, save_policies=True
 ):
     # Fork for multi-CPU MPI implementation.
     if num_cpu > 1:
@@ -175,13 +176,18 @@ def launch(
 
 
 @click.command()
-@click.option('--env', type=str, default='FetchReach-v1', help='the name of the OpenAI Gym environment that you want to train on')
-@click.option('--logdir', type=str, default=None, help='the path to where logs and policy pickles should go. If not specified, creates a folder in /tmp/')
+@click.option('--env', type=str, default='FetchReach-v1',
+              help='the name of the OpenAI Gym environment that you want to train on')
+@click.option('--logdir', type=str, default=None,
+              help='the path to where logs and policy pickles should go. If not specified, creates a folder in /tmp/')
 @click.option('--n_epochs', type=int, default=50, help='the number of training epochs to run')
 @click.option('--num_cpu', type=int, default=1, help='the number of CPU cores to use (using MPI)')
-@click.option('--seed', type=int, default=0, help='the random seed used to seed both the environment and the training code')
-@click.option('--policy_save_interval', type=int, default=5, help='the interval with which policy pickles are saved. If set to 0, only the best and latest policy will be pickled.')
-@click.option('--replay_strategy', type=click.Choice(['future', 'none']), default='future', help='the HER replay strategy to be used. "future" uses HER, "none" disables HER.')
+@click.option('--seed', type=int, default=0,
+              help='the random seed used to seed both the environment and the training code')
+@click.option('--policy_save_interval', type=int, default=5,
+              help='the interval with which policy pickles are saved. If set to 0, only the best and latest policy will be pickled.')
+@click.option('--replay_strategy', type=click.Choice(['future', 'none']), default='future',
+              help='the HER replay strategy to be used. "future" uses HER, "none" disables HER.')
 @click.option('--clip_return', type=int, default=1, help='whether or not returns should be clipped')
 def main(**kwargs):
     launch(**kwargs)

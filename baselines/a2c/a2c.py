@@ -8,22 +8,21 @@ from baselines.common import set_global_seeds, explained_variance
 from baselines.common import tf_util
 from baselines.common.policies import build_policy
 
-
 from baselines.a2c.utils import Scheduler, find_trainable_variables
 from baselines.a2c.runner import Runner
 
 from tensorflow import losses
 
+
 class Model(object):
 
     def __init__(self, policy, env, nsteps,
-            ent_coef=0.01, vf_coef=0.5, max_grad_norm=0.5, lr=7e-4,
-            alpha=0.99, epsilon=1e-5, total_timesteps=int(80e6), lrschedule='linear'):
+                 ent_coef=0.01, vf_coef=0.5, max_grad_norm=0.5, lr=7e-4,
+                 alpha=0.99, epsilon=1e-5, total_timesteps=int(80e6), lrschedule='linear'):
 
         sess = tf_util.get_session()
         nenvs = env.num_envs
-        nbatch = nenvs*nsteps
-
+        nbatch = nenvs * nsteps
 
         with tf.variable_scope('a2c_model', reuse=tf.AUTO_REUSE):
             step_model = policy(nenvs, 1, sess)
@@ -40,7 +39,7 @@ class Model(object):
         pg_loss = tf.reduce_mean(ADV * neglogpac)
         vf_loss = losses.mean_squared_error(tf.squeeze(train_model.vf), R)
 
-        loss = pg_loss - entropy*ent_coef + vf_loss * vf_coef
+        loss = pg_loss - entropy * ent_coef + vf_loss * vf_coef
 
         params = find_trainable_variables("a2c_model")
         grads = tf.gradients(loss, params)
@@ -57,7 +56,7 @@ class Model(object):
             for step in range(len(obs)):
                 cur_lr = lr.value()
 
-            td_map = {train_model.X:obs, A:actions, ADV:advs, R:rewards, LR:cur_lr}
+            td_map = {train_model.X: obs, A: actions, ADV: advs, R: rewards, LR: cur_lr}
             if states is not None:
                 td_map[train_model.S] = states
                 td_map[train_model.M] = masks
@@ -66,7 +65,6 @@ class Model(object):
                 td_map
             )
             return policy_loss, value_loss, policy_entropy
-
 
         self.train = train
         self.train_model = train_model
@@ -80,24 +78,23 @@ class Model(object):
 
 
 def learn(
-    network,
-    env,
-    seed=None,
-    nsteps=5,
-    total_timesteps=int(80e6),
-    vf_coef=0.5,
-    ent_coef=0.01,
-    max_grad_norm=0.5,
-    lr=7e-4,
-    lrschedule='linear',
-    epsilon=1e-5,
-    alpha=0.99,
-    gamma=0.99,
-    log_interval=100,
-    load_path=None,
-    **network_kwargs):
-
-    ''' 
+        network,
+        env,
+        seed=None,
+        nsteps=5,
+        total_timesteps=int(80e6),
+        vf_coef=0.5,
+        ent_coef=0.01,
+        max_grad_norm=0.5,
+        lr=7e-4,
+        lrschedule='linear',
+        epsilon=1e-5,
+        alpha=0.99,
+        gamma=0.99,
+        log_interval=100,
+        load_path=None,
+        **network_kwargs):
+    '''
     Main entrypoint for A2C algorithm. Train a policy with given network architecture on a given environment using a2c algorithm.
 
     Parameters:
@@ -143,31 +140,30 @@ def learn(
                         For instance, 'mlp' network architecture has arguments num_hidden and num_layers. 
 
     '''
-    
-
 
     set_global_seeds(seed)
 
     nenvs = env.num_envs
     policy = build_policy(env, network, **network_kwargs)
-   
+
     model = Model(policy=policy, env=env, nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
-        max_grad_norm=max_grad_norm, lr=lr, alpha=alpha, epsilon=epsilon, total_timesteps=total_timesteps, lrschedule=lrschedule)
+                  max_grad_norm=max_grad_norm, lr=lr, alpha=alpha, epsilon=epsilon, total_timesteps=total_timesteps,
+                  lrschedule=lrschedule)
     if load_path is not None:
         model.load(load_path)
     runner = Runner(env, model, nsteps=nsteps, gamma=gamma)
 
-    nbatch = nenvs*nsteps
+    nbatch = nenvs * nsteps
     tstart = time.time()
-    for update in range(1, total_timesteps//nbatch+1):
+    for update in range(1, total_timesteps // nbatch + 1):
         obs, states, rewards, masks, actions, values = runner.run()
         policy_loss, value_loss, policy_entropy = model.train(obs, states, rewards, masks, actions, values)
-        nseconds = time.time()-tstart
-        fps = int((update*nbatch)/nseconds)
+        nseconds = time.time() - tstart
+        fps = int((update * nbatch) / nseconds)
         if update % log_interval == 0 or update == 1:
             ev = explained_variance(values, rewards)
             logger.record_tabular("nupdates", update)
-            logger.record_tabular("total_timesteps", update*nbatch)
+            logger.record_tabular("total_timesteps", update * nbatch)
             logger.record_tabular("fps", fps)
             logger.record_tabular("policy_entropy", float(policy_entropy))
             logger.record_tabular("value_loss", float(value_loss))
@@ -175,4 +171,3 @@ def learn(
             logger.dump_tabular()
     env.close()
     return model
-

@@ -9,9 +9,9 @@ common_kwargs = dict(
     gamma=0.9,
     seed=0,
 )
-   
+
 learn_kwargs = {
-    'a2c' : {},
+    'a2c': {},
     'acktr': {},
     'deepq': {},
     'ppo2': dict(lr=1e-3, nsteps=64, ent_coef=0.0),
@@ -34,6 +34,7 @@ def test_discrete_identity(alg):
     env_fn = lambda: DiscreteIdentityEnv(10, episode_len=100)
     simple_test(env_fn, learn_fn, 0.9)
 
+
 @pytest.mark.slow
 @pytest.mark.parametrize("alg", ['a2c', 'ppo2', 'trpo_mpi'])
 def test_continuous_identity(alg):
@@ -50,6 +51,6 @@ def test_continuous_identity(alg):
     env_fn = lambda: BoxIdentityEnv((1,), episode_len=100)
     simple_test(env_fn, learn_fn, -0.1)
 
-if __name__ == '__main__':
-    test_continuous_identity('a2c')    
 
+if __name__ == '__main__':
+    test_continuous_identity('a2c')

@@ -8,7 +8,6 @@ class IdentityEnv(Env):
             dim,
             ep_length=100,
     ):
-
         self.action_space = Discrete(dim)
         self.reset()
 

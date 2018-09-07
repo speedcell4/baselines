@@ -84,10 +84,10 @@ class DDPG(object):
             self._create_network(reuse=reuse)
 
         # Configure the replay buffer.
-        buffer_shapes = {key: (self.T if key != 'o' else self.T+1, *input_shapes[key])
+        buffer_shapes = {key: (self.T if key != 'o' else self.T + 1, *input_shapes[key])
                          for key, val in input_shapes.items()}
         buffer_shapes['g'] = (buffer_shapes['g'][0], self.dimg)
-        buffer_shapes['ag'] = (self.T+1, self.dimg)
+        buffer_shapes['ag'] = (self.T + 1, self.dimg)
 
         buffer_size = (self.buffer_size // self.rollout_batch_size) * self.rollout_batch_size
         self.buffer = ReplayBuffer(buffer_shapes, buffer_size, self.T, self.sample_transitions)
@@ -127,7 +127,8 @@ class DDPG(object):
         noise = noise_eps * self.max_u * np.random.randn(*u.shape)  # gaussian noise
         u += noise
         u = np.clip(u, -self.max_u, self.max_u)
-        u += np.random.binomial(1, random_eps, u.shape[0]).reshape(-1, 1) * (self._random_action(u.shape[0]) - u)  # eps-greedy
+        u += np.random.binomial(1, random_eps, u.shape[0]).reshape(-1, 1) * (
+                    self._random_action(u.shape[0]) - u)  # eps-greedy
         if u.shape[0] == 1:
             u = u[0]
         u = u.copy()
@@ -292,7 +293,8 @@ class DDPG(object):
         self.init_target_net_op = list(
             map(lambda v: v[0].assign(v[1]), zip(self.target_vars, self.main_vars)))
         self.update_target_net_op = list(
-            map(lambda v: v[0].assign(self.polyak * v[0] + (1. - self.polyak) * v[1]), zip(self.target_vars, self.main_vars)))
+            map(lambda v: v[0].assign(self.polyak * v[0] + (1. - self.polyak) * v[1]),
+                zip(self.target_vars, self.main_vars)))
 
         # initialize all variables
         tf.variables_initializer(self._global_vars('')).run()
@@ -335,6 +337,6 @@ class DDPG(object):
                 self.__dict__[k] = v
         # load TF variables
         vars = [x for x in self._global_vars('') if 'buffer' not in x.name]
-        assert(len(vars) == len(state["tf"]))
+        assert (len(vars) == len(state["tf"]))
         node = [tf.assign(var, val) for var, val in zip(vars, state["tf"])]
         self.sess.run(node)

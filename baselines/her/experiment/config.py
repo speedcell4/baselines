@@ -5,13 +5,11 @@ from baselines import logger
 from baselines.her.ddpg import DDPG
 from baselines.her.her import make_sample_her_transitions
 
-
 DEFAULT_ENV_PARAMS = {
     'FetchReach-v1': {
         'n_cycles': 10,
     },
 }
-
 
 DEFAULT_PARAMS = {
     # env
@@ -46,7 +44,6 @@ DEFAULT_PARAMS = {
     'norm_clip': 5,  # normalized observations are cropped to this values
 }
 
-
 CACHED_ENVS = {}
 
 
@@ -70,6 +67,7 @@ def prepare_params(kwargs):
 
     def make_env():
         return gym.make(env_name)
+
     kwargs['make_env'] = make_env
     tmp_env = cached_make_env(kwargs['make_env'])
     assert hasattr(tmp_env, '_max_episode_steps')

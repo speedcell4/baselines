@@ -60,6 +60,7 @@ def test_vec_env(klass, dtype):  # pylint: disable=R0914
         Get an environment constructor with a seed.
         """
         return lambda: SimpleEnv(seed, shape, dtype)
+
     fns = [make_fn(i) for i in range(num_envs)]
     env1 = DummyVecEnv(fns)
     env2 = klass(fns)

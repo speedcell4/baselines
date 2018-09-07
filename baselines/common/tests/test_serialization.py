@@ -11,18 +11,17 @@ from baselines.common.tf_util import make_session, get_session
 
 from functools import partial
 
-
 learn_kwargs = {
     'deepq': {},
-    'a2c': {}, 
+    'a2c': {},
     'acktr': {},
     'ppo2': {'nminibatches': 1, 'nsteps': 10},
     'trpo_mpi': {},
 }
 
 network_kwargs = {
-    'mlp': {}, 
-    'cnn': {'pad': 'SAME'}, 
+    'mlp': {},
+    'cnn': {'pad': 'SAME'},
     'lstm': {},
     'cnn_lnlstm': {'pad': 'SAME'}
 }
@@ -35,12 +34,11 @@ def test_serialization(learn_fn, network_fn):
     Test if the trained model can be serialized 
     '''
 
-    
     if network_fn.endswith('lstm') and learn_fn in ['acktr', 'trpo_mpi', 'deepq']:
-            # TODO make acktr work with recurrent policies
-            # and test
-            # github issue: https://github.com/openai/baselines/issues/194
-            return 
+        # TODO make acktr work with recurrent policies
+        # and test
+        # github issue: https://github.com/openai/baselines/issues/194
+        return
 
     env = DummyVecEnv([lambda: MnistEnv(10, episode_len=100)])
     ob = env.reset().copy()
@@ -49,7 +47,6 @@ def test_serialization(learn_fn, network_fn):
     kwargs = {}
     kwargs.update(network_kwargs[network_fn])
     kwargs.update(learn_kwargs[learn_fn])
-
 
     learn = partial(learn, env=env, network=network_fn, seed=0, **kwargs)
 
@@ -69,19 +66,18 @@ def test_serialization(learn_fn, network_fn):
 
         for k, v in variables_dict1.items():
             np.testing.assert_allclose(v, variables_dict2[k], atol=0.01,
-                err_msg='saved and loaded variable {} value mismatch'.format(k))
+                                       err_msg='saved and loaded variable {} value mismatch'.format(k))
 
         np.testing.assert_allclose(mean1, mean2, atol=0.5)
         np.testing.assert_allclose(std1, std2, atol=0.5)
 
- 
 
 def _serialize_variables():
     sess = get_session()
-    variables = tf.trainable_variables()    
+    variables = tf.trainable_variables()
     values = sess.run(variables)
     return {var.name: value for var, value in zip(variables, values)}
-    
+
 
 def _get_action_stats(model, ob):
     ntrials = 1000
@@ -94,4 +90,3 @@ def _get_action_stats(model, ob):
     std = np.std(actions, axis=0)
 
     return mean, std
-

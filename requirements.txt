@@ -1,0 +1,10 @@
+gym[mujoco,atari,classic_control,robotics]
+scipy
+tqdm
+joblib
+dill
+progressbar2
+mpi4py
+cloudpickle
+click
+opencv-python
